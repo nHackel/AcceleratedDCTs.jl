@@ -16,6 +16,13 @@ using LinearAlgebra
     # DCT-II/DCT-III
     include("test_dct_optimized.jl")
 
-    # DCT-I
+    # DCT-I (separable / generic fallback)
     include("test_dct1_separable.jl")
+
+    # IDCT-I
+    include("test_idct1_optimized.jl")
+
+    # FFTW extension (loaded via `import FFTW` above)
+    include("test_fftw_ext.jl")
 end
+

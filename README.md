@@ -127,6 +127,40 @@ p = plan_dct1(CuArray(rand(128, 128, 128)))
 
 > **Note**: `VkDCT_jll` is installed automatically as a dependency. On systems without CUDA, it has no effect.
 
+## FFTW Extension (Optimized CPU DCT-I)
+
+When [`FFTW.jl`](https://github.com/JuliaMath/FFTW.jl) is loaded, the `FFTWExt` extension activates and replaces the generic `plan_dct1` / `plan_idct1` for CPU `Array` inputs with FFTW's native `REDFT00` (real-even DFT), which computes DCT-I directly in a single optimized call:
+
+```julia
+using AcceleratedDCTs
+using FFTW   # ← loads the FFTWExt extension
+
+x = rand(64, 64, 64)
+p = plan_dct1(x)   # Uses FFTW REDFT00 (fast)
+y = p * x
+```
+
+> [!IMPORTANT]
+> **Without `using FFTW`**, `plan_dct1` on CPU `Array` falls back to the generic separable implementation (pre-process → complex FFT → post-process), which is significantly slower. For best CPU DCT-I performance, always load FFTW:
+>
+> ```julia
+> using FFTW              # Required for optimal CPU DCT-I
+> using AcceleratedDCTs
+> ```
+>
+> Note that the separable fallback itself still requires *some* FFT backend (e.g. FFTW) to be loaded for its internal `plan_fft!` calls.
+
+### Extension Architecture
+
+AcceleratedDCTs.jl uses Julia's [package extensions](https://pkgdocs.julialang.org/v1/creating-packages/#Conditional-loading-of-code-in-packages-(Extensions)) to keep heavy dependencies optional:
+
+| Extension | Trigger | Provides |
+|-----------|---------|----------|
+| `FFTWExt` | `using FFTW` | Optimized CPU DCT-I via `REDFT00` |
+| `VkDCTExt` | `using CUDA` | GPU DCT-I via VkFFT (7–15x faster) |
+
+The core package depends only on `AbstractFFTs` and `KernelAbstractions`, keeping it lightweight and compatible with alternative FFT backends.
+
 ## Documentation
 
 Comprehensive documentation is available at [https://liuyxpp.github.io/AcceleratedDCTs.jl/dev/](https://liuyxpp.github.io/AcceleratedDCTs.jl/dev/).
