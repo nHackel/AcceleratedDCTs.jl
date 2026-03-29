@@ -4,12 +4,18 @@
 
 ```julia
 using AcceleratedDCTs
-using FFTW  # Required for CPU execution
-using CUDA  # Optional: for GPU execution
+using FFTW  # Recommended: loads FFTWExt for optimal CPU DCT-I
+using CUDA  # Optional: for GPU execution (loads VkDCTExt)
 
 # Create random data (1D, 2D, or 3D)
 x = rand(100) 
 ```
+
+!!! note "FFTW is a weak dependency"
+    `FFTW.jl` is not loaded by default. Loading it activates the `FFTWExt`
+    extension, which provides fast CPU DCT-I via FFTW's native `REDFT00`.
+    Without it, CPU DCT-I falls back to a slower separable implementation.
+    FFTW is also needed as the FFT backend for other transforms on CPU.
 
 ## High-Level API (Convenience)
 
